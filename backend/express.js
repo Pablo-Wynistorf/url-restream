@@ -6,7 +6,17 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || API_URL.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
+
 app.use(express.json());
 
 if (process.env.VCAP_SERVICES) {
@@ -17,7 +27,6 @@ if (process.env.VCAP_SERVICES) {
   }
 }
 
-const API_PORT = process.env.API_PORT;
 const API_URL = process.env.API_URL;
 const DATABASE_URI = process.env.DATABASE_URI;
 
@@ -122,6 +131,6 @@ app.all('/:refCode', async (req, res) => {
   }
 });
 
-app.listen(API_PORT, () => {
-  console.log('Login API started on port', API_PORT);
+app.listen(3000, () => {
+  console.log('Login API started on port 3000');
 });

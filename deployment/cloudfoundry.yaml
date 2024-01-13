@@ -1,0 +1,17 @@
+# cf login -a https://api.scapp-console.swisscom.com --sso
+# cf push -f .\cloudfoundry.yaml
+---
+applications:
+- name: link-shortener
+  docker:
+    image: remote-docker.artifactory.swisscom.com/pablo06/link-shortener:v1.0.0
+  instances: 1
+  services:
+    - url-shortener-db
+  readiness-health-check-http-endpoint: /
+  disk_quota: 5G
+  memory: 2G
+  routes:
+  - route: url.scapp.swisscom.com
+  env:
+    API_URL: https://url.scapp.swisscom.com

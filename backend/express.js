@@ -77,7 +77,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 const validateURL = (url) => {
-  const urlRegex = /^(https?:\/\/)?([\w\d-]+\.)*[\w\d]+\.[\w]{2,}(\/.*)*$/;
+  const urlRegex = /^(https?):\/\/[A-Za-z0-9._-]+(\/[A-Za-z0-9%._-]*)*$/;
+
+
+
   return urlRegex.test(url);
 };
 

@@ -47,8 +47,9 @@ db.once('open', () => {
 
 const { Schema } = mongoose;
 const urlSchema = new Schema({
+  urlId: String,
   link: String,
-  randomString: String,
+  timestamp: String,
 });
 
 const urlDB = mongoose.model('urldb', urlSchema);
@@ -66,16 +67,28 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const validateURL = (url) => {
   const urlRegex = /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/;
-
-
-
-
   return urlRegex.test(url);
 };
 
+async function generateUniqueRandomString() {
+  let randomString;
+  let existingString;
+  do {
+    randomString = crypto.randomBytes(3).toString('hex').slice(0, 6);
+    existingString = await urlDB.findOne({ urlId: randomString });
+  } while (existingString);
+
+  return randomString;
+}
+
+async function getTimestamp() {
+  return Date.now();
+}
+
+
 app.post('/api/link', async (req, res) => {
   const { link } = req.body;
-  const { host } = req.body;
+  const { origin: host } = req.headers;
 
   const validatedLink = link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`;
 
@@ -84,33 +97,27 @@ app.post('/api/link', async (req, res) => {
   }
 
   try {
-    const existingUser = await urlDB.findOne({ link: validatedLink });
+    const existingLink = await urlDB.findOne({ link: validatedLink });
 
-    if (existingUser) {
-      return res.status(200).json({ success: true, shortenedLink: `${host}/${existingUser.randomString}` });
+    if (existingLink) {
+      return res.status(200).json({ success: true, shortenedLink: `${host}/${existingLink.randomString}` });
     }
 
-    const randomString = crypto.randomBytes(3).toString('hex').slice(0, 6);
+    const randomString = await generateUniqueRandomString();
+    const timestamp = await getTimestamp();
+    await urlDB.insertMany({ urlId: randomString, link: validatedLink, timestamp: timestamp });
 
-    const newUser = await urlDB.findOneAndUpdate(
-      { randomString },
-      { $setOnInsert: { link: validatedLink, randomString } },
-      { upsert: true, new: true }
-    );
-
-    const shortenedLink = `${host}/${newUser.randomString}`;
+    const shortenedLink = `${host}/${randomString}`;
     res.status(200).json({ success: true, shortenedLink });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Something went wrong, try again later' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-app.all('/:refCode', async (req, res) => {
-  const { refCode } = req.params;
-
+app.all('/:urlId', async (req, res) => {
+  const { urlId } = req.params;
   try {
-    const urlDoc = await urlDB.findOne({ randomString: refCode });
+    const urlDoc = await urlDB.findOne({ urlId: urlId });
 
     if (urlDoc && urlDoc.link) {
       const url = new URL(urlDoc.link);
@@ -119,8 +126,7 @@ app.all('/:refCode', async (req, res) => {
       res.redirect('/');
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Something went wrong, try again later' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

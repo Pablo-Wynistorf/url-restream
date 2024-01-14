@@ -1,4 +1,3 @@
-const url = document.location.origin
 const sendButton = document.getElementById('sendButton');
 const urlInput = document.getElementById('url');
 const inputContainer = document.getElementById('inputContainer');
@@ -22,7 +21,7 @@ sendButton.addEventListener('click', async () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ link: originalUrl, host: url}),
+                body: JSON.stringify({ link: originalUrl }),
             });
 
             if (response.ok) {

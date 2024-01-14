@@ -98,9 +98,8 @@ app.post('/api/link', async (req, res) => {
 
   try {
     const existingLink = await urlDB.findOne({ link: validatedLink });
-
     if (existingLink) {
-      return res.status(200).json({ success: true, shortenedLink: `${host}/${existingLink.randomString}` });
+      return res.status(200).json({ success: true, shortenedLink: `${host}/${existingLink.urlId}` });
     }
 
     const randomString = await generateUniqueRandomString();

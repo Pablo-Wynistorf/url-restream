@@ -32,6 +32,7 @@ sendButton.addEventListener('click', async () => {
                 title2.innerHTML = 'Your shortened URL';
                 sendButton.textContent = 'Copy';
                 sendButton.id = 'copyButton';
+                document.body.appendChild(newLink);
                 inputContainer.appendChild(sendButton);
                 newLink.style.display = 'block';
             } else {
@@ -65,7 +66,6 @@ function displayError(errorMessage) {
 function displaySuccess(successMessage) {
     successBox.textContent = successMessage;
     document.body.appendChild(successBox);
-    document.body.appendChild(newLink);
     setTimeout(() => {
         successBox.remove();
         sendButton.disabled = false;

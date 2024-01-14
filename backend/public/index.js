@@ -35,9 +35,11 @@ sendButton.addEventListener('click', async () => {
                 document.body.appendChild(newLink);
                 inputContainer.appendChild(sendButton);
                 newLink.style.display = 'block';
-            } else {
+            } else if (response.status === 400) {
                 sendButton.disabled = true;
                 displayError('Error: Enter a valid URL');
+            } else {
+                displayError('Internal Server Error');
             }
         } catch (error) {
             console.error('Error during fetch:', error);

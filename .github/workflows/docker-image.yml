@@ -25,4 +25,4 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: pablo06/link-shortener:latest , pablo06/link-shortener:v1.0.0
+          tags: pablo06/link-shortener:latest, pablo06/link-shortener:v1.0.0

@@ -12,6 +12,5 @@ applications:
   disk_quota: 5G
   memory: 2G
   routes:
-  - route: url.scapp.swisscom.com
-  env:
-    API_URL: https://url.scapp.swisscom.com
+  - route: onedns.ch
+  - route: jnawkjdnajiwndkjanwkdjnakwjdnkjawndkjnawjkdn.scapp.swisscom.com

@@ -2,20 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 const path = require('path');
-const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || API_URL.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-}));
 
 app.use(express.json());
 
@@ -27,7 +16,6 @@ if (process.env.VCAP_SERVICES) {
   }
 }
 
-const API_URL = process.env.API_URL;
 const DATABASE_URI = process.env.DATABASE_URI;
 
 function connectToDatabase() {
@@ -87,6 +75,7 @@ const validateURL = (url) => {
 
 app.post('/api/link', async (req, res) => {
   const { link } = req.body;
+  const { host } = req.body;
 
   const validatedLink = link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`;
 
@@ -98,7 +87,7 @@ app.post('/api/link', async (req, res) => {
     const existingUser = await urlDB.findOne({ link: validatedLink });
 
     if (existingUser) {
-      return res.status(200).json({ success: true, shortenedLink: `${API_URL}/${existingUser.randomString}` });
+      return res.status(200).json({ success: true, shortenedLink: `${host}/${existingUser.randomString}` });
     }
 
     const randomString = crypto.randomBytes(3).toString('hex').slice(0, 6);
@@ -109,7 +98,7 @@ app.post('/api/link', async (req, res) => {
       { upsert: true, new: true }
     );
 
-    const shortenedLink = `${API_URL}/${newUser.randomString}`;
+    const shortenedLink = `${host}/${newUser.randomString}`;
     res.status(200).json({ success: true, shortenedLink });
   } catch (error) {
     console.error(error);

@@ -1,3 +1,4 @@
+const url = document.location.origin
 const sendButton = document.getElementById('sendButton');
 const urlInput = document.getElementById('url');
 const inputContainer = document.getElementById('inputContainer');
@@ -21,7 +22,7 @@ sendButton.addEventListener('click', async () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ link: originalUrl }),
+                body: JSON.stringify({ link: originalUrl, host: url}),
             });
 
             if (response.ok) {
@@ -33,7 +34,7 @@ sendButton.addEventListener('click', async () => {
                 sendButton.textContent = 'Copy';
                 sendButton.id = 'copyButton';
                 inputContainer.appendChild(sendButton);
-                newLink.style.display = 'block'; // Show the "New Link" button
+                newLink.style.display = 'block';
             } else {
                 sendButton.disabled = true;
                 displayError('Error: Enter a valid URL');

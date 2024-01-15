@@ -81,7 +81,6 @@ sendButton.addEventListener('click', async () => {
             console.error('Error during fetch:', error);
         } finally {
             sendButton.disabled = false;
-            sendButton.removeChild(loadingGif);
             sendButton.innerHTML = 'Get short link';
         }
     } else {

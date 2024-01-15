@@ -60,9 +60,15 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-const validateURL = (url) => {
-  const urlRegex = /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/;
-  return urlRegex.test(url);
+
+const validateUrl = (url) => {
+  const CustomUrlId = /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/;
+  return CustomUrlId.test(url);
+};
+
+const validateCustomUrlId = (url) => {
+  const CustomUrlId = /^[a-zA-Z0-9]+$/;
+  return CustomUrlId.test(url);
 };
 
 async function generateUniqueRandomString() {
@@ -95,14 +101,16 @@ app.post('/api/link', async (req, res) => {
 
   const validatedLink = link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`;
 
-  if (!validateURL(validatedLink)) {
-    return res.status(400).json({ success: false });
+  if (!validateUrl(validatedLink)) {
+    return res.status(400).json({ success: false, error: 'Invalid url provided' });
   }
 
   try {
     let urlIdToInsert;
-
     if (customUrlId) {
+      if (!validateCustomUrlId(customUrlId)) {
+        return res.status(401).json({ success: false, error: 'Invalid custom urlId' });
+      }
       const timeoutPromiseCustomUrl = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Database query for customUrlId timed out')), 5000)
       );
@@ -115,7 +123,7 @@ app.post('/api/link', async (req, res) => {
       ]);
 
       if (existingCustomLink) {
-        return res.status(401).json({ error: 'Custom URL already in use' });
+        return res.status(402).json({ error: 'Custom URL already in use' });
       }
 
       urlIdToInsert = customUrlId;

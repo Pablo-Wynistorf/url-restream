@@ -59,6 +59,9 @@ sendButton.addEventListener('click', async () => {
                 displayError('Error: Enter a valid URL');
             } else if (response.status === 401) {
                 sendButton.disabled = true;
+                displayError('Error: Invalid custom url');
+            } else if (response.status === 402) {
+                sendButton.disabled = true;
                 displayError('Error: Custom url already in use');
                 customUrlId.value = ""
                 customUrlBox.querySelector("input[readonly]").value = document.location.host + "/"

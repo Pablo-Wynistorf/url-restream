@@ -14,6 +14,11 @@
     <h1>URL Shortener</h1>
     <h3 id="title-2">Enter long URL:</h3>
     <input type="url" class="hook_url" placeholder="Example: https://example.com/url" id="url" tabindex="50" data-form-type="website">
+    <div class="custom-url" id="customUrl">⚙️ Set custom url</div>
+    <div class="custom-url-box" id="customUrlBox">
+      <input type="text" value="" readonly>
+      <input id="customUrlId" type="text" value="" placeholder="custom_link" pattern="[a-zA-Z0-9]{1,12}" inputmode="text" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')" maxlength="20">
+    </div>
     <button id="sendButton">Get short link</button>
     <div id="inputContainer"></div>
   </div>

@@ -6,6 +6,7 @@ const errorBox = document.createElement('div');
 const successBox = document.createElement('div');
 const newLink = document.createElement('button');
 const loadingGif = document.createElement('img');
+const customUrlId = document.getElementById('customUrlId')
 
 errorBox.className = 'error-box';
 successBox.className = 'success-box';
@@ -31,7 +32,7 @@ sendButton.addEventListener('click', async () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ link: originalUrl }),
+                body: JSON.stringify({ link: originalUrl, customUrlId: customUrlId.value }),
             });
             sendButton.disabled = true;
 
@@ -43,12 +44,24 @@ sendButton.addEventListener('click', async () => {
                 title2.innerHTML = 'Your shortened URL';
                 sendButton.innerHTML = 'Copy';
                 sendButton.id = 'copyButton';
+                const customUrl = document.getElementById('customUrl');
+                const customUrlBox = document.getElementById('customUrlBox');
+                if (customUrl) {
+                    customUrl.remove();
+                    customUrlBox.remove();
+                }
+        
                 document.body.appendChild(newLink);
                 inputContainer.appendChild(sendButton);
                 newLink.style.display = 'block';
             } else if (response.status === 400) {
                 sendButton.disabled = true;
                 displayError('Error: Enter a valid URL');
+            } else if (response.status === 401) {
+                sendButton.disabled = true;
+                displayError('Error: Custom url already in use');
+                customUrlId.value = ""
+                customUrlBox.querySelector("input[readonly]").value = document.location.host + "/"
             } else {
                 displayError('Internal Server Error');
             }
@@ -88,3 +101,24 @@ function displaySuccess(successMessage) {
         sendButton.disabled = false;
     }, 2500);
 }
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const customUrl = document.getElementById("customUrl");
+    const customUrlBox = document.getElementById("customUrlBox");
+
+    customUrl.addEventListener("click", function () {
+        if (customUrlBox.style.display === "none" || customUrlBox.style.display === "") {
+            customUrlBox.style.display = "flex";
+            customUrl.innerHTML = "⚙️ Use random url";
+        } else {
+            customUrlBox.style.display = "none";
+            customUrl.innerHTML = "⚙️ Set custom url";
+        }
+        customUrlBox.querySelector("input[readonly]").value = document.location.host + "/" + customUrlId.value;
+    });
+
+    customUrlId.addEventListener('input', function () {
+        customUrlBox.querySelector("input[readonly]").value = document.location.host + "/" + customUrlId.value;
+    });
+});

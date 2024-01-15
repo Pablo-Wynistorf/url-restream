@@ -83,6 +83,7 @@ async function getTimestamp() {
 
 app.post('/api/link', async (req, res) => {
   const { link } = req.body;
+  const { customUrlId } = req.body;
   const { origin: host } = req.headers;
 
   const validatedLink = link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`;
@@ -91,40 +92,32 @@ app.post('/api/link', async (req, res) => {
     return res.status(400).json({ success: false });
   }
 
-  try {
-    const existingLinkPromise = new Promise(async (resolve, reject) => {
+    if (customUrlId) {
       try {
-        const existingLink = await urlDB.findOne({ link: validatedLink });
-        resolve(existingLink);
+        const existingCustomLink = await urlDB.findOne({ urlId: customUrlId });
+
+        if (existingCustomLink) {
+          return res.status(401).json({ error: 'Custom URL already in use' });
+        }
       } catch (error) {
-        reject(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
       }
-    });
-
-    const timeoutPromise = new Promise((resolve, reject) => {
-      setTimeout(() => reject('Database query timed out'), 5000);
-    });
-
+    }
     try {
-      const existingLink = await Promise.race([existingLinkPromise, timeoutPromise]);
-
-      if (existingLink) {
-        return res.status(200).json({ success: true, shortenedLink: `${host}/${existingLink.urlId}` });
-      }
-
-      const randomString = await generateUniqueRandomString();
+      const urlIdToInsert = customUrlId || await generateUniqueRandomString();
       const timestamp = await getTimestamp();
-      await urlDB.insertMany({ urlId: randomString, link: validatedLink, timestamp: timestamp });
+      await urlDB.insertMany({ urlId: urlIdToInsert, link: validatedLink, timestamp: timestamp });
 
-      const shortenedLink = `${host}/${randomString}`;
-      return res.status(200).json({ success: true, shortenedLink });
+      const shortenedLink = `${host}/${urlIdToInsert}`;
+      res.status(200).json({ success: true, shortenedLink });
+      return;
     } catch (error) {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
 });
+
+
+
 
 
 app.all('/:urlId', async (req, res) => {

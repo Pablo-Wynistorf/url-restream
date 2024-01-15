@@ -136,7 +136,7 @@ p {
   font-size: 20px;
   position: fixed;
   top: 60px;
-  left: 60px; /* Adjust the right distance as needed */
+  left: 60px;
   background-color: #4e50587a;
   color: #fff;
   padding: 20px;
@@ -149,4 +149,26 @@ p {
 
 .new-link-box:hover {
   background-color: #41434a;
+}
+
+.custom-url-box {
+  width: 100%;
+  margin-top: 10px;
+  display: none;
+  flex-direction: column;
+}
+
+.custom-url-box input {
+  width: 100%;
+  padding: 15px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 15px;
+  font-size: 16px;
+  background-color: #37383a;
+  color: #fff;
+}
+#customUrl {
+  padding-top: 10px;
+  cursor: pointer;
 }

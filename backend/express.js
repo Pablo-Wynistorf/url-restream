@@ -21,27 +21,22 @@ const DATABASE_URI = process.env.DATABASE_URI;
 function connectToDatabase() {
   mongoose.connect(DATABASE_URI);
 }
+const db = mongoose.connection;
 
 connectToDatabase();
-
-const db = mongoose.connection;
 
 db.on('error', () => {
   console.log('MongoDB connection error. Reconnecting...');
   setTimeout(connectToDatabase, 5000);
-
 });
+
 db.on('disconnected', () => {
   console.log('MongoDB disconnected. Reconnecting...');
-  connectToDatabase();
-});
-
-db.on('econnrefused', () => {
-  console.log('MongoDB connection refused. Reconnecting...');
   setTimeout(connectToDatabase, 5000);
+  return;
 });
 
-db.once('open', () => {
+db.on('connected', () => {
   console.log('Connected to MongoDB');
 });
 
@@ -97,38 +92,78 @@ app.post('/api/link', async (req, res) => {
   }
 
   try {
-    const existingLink = await urlDB.findOne({ link: validatedLink });
-    if (existingLink) {
-      return res.status(200).json({ success: true, shortenedLink: `${host}/${existingLink.urlId}` });
+    const existingLinkPromise = new Promise(async (resolve, reject) => {
+      try {
+        const existingLink = await urlDB.findOne({ link: validatedLink });
+        resolve(existingLink);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => reject('Database query timed out'), 5000);
+    });
+
+    try {
+      const existingLink = await Promise.race([existingLinkPromise, timeoutPromise]);
+
+      if (existingLink) {
+        return res.status(200).json({ success: true, shortenedLink: `${host}/${existingLink.urlId}` });
+      }
+
+      const randomString = await generateUniqueRandomString();
+      const timestamp = await getTimestamp();
+      await urlDB.insertMany({ urlId: randomString, link: validatedLink, timestamp: timestamp });
+
+      const shortenedLink = `${host}/${randomString}`;
+      return res.status(200).json({ success: true, shortenedLink });
+    } catch (error) {
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
-
-    const randomString = await generateUniqueRandomString();
-    const timestamp = await getTimestamp();
-    await urlDB.insertMany({ urlId: randomString, link: validatedLink, timestamp: timestamp });
-
-    const shortenedLink = `${host}/${randomString}`;
-    res.status(200).json({ success: true, shortenedLink });
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 app.all('/:urlId', async (req, res) => {
   const { urlId } = req.params;
-  try {
-    const urlDoc = await urlDB.findOne({ urlId: urlId });
 
-    if (urlDoc && urlDoc.link) {
-      const url = new URL(urlDoc.link);
-      res.redirect(url.href);
-    } else {
-      res.redirect('/');
+  try {
+    const urlDocPromise = new Promise(async (resolve, reject) => {
+      try {
+        const urlDoc = await urlDB.findOne({ urlId: urlId });
+        resolve(urlDoc);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => reject('Database query timed out'), 5000);
+    });
+
+    try {
+      const urlDoc = await Promise.race([urlDocPromise, timeoutPromise]);
+
+      if (urlDoc && urlDoc.link) {
+        const url = new URL(urlDoc.link);
+        res.redirect(url.href);
+      } else {
+        return res.redirect('/');
+      }
+    } catch (error) {
+      return res.redirect('/');
     }
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.redirect('/');
   }
 });
 
+
+
 app.listen(3000, () => {
-  console.log('Login API started on port 3000');
+  console.log('URL Shortener started on port 3000');
+  console.log('Connecting to MongoDB...');
 });

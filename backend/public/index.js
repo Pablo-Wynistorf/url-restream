@@ -5,16 +5,26 @@ const title2 = document.getElementById('title-2');
 const errorBox = document.createElement('div');
 const successBox = document.createElement('div');
 const newLink = document.createElement('button');
+const loadingGif = document.createElement('img');
+
 errorBox.className = 'error-box';
 successBox.className = 'success-box';
 newLink.className = 'new-link-box';
 newLink.textContent = 'Shorten another link';
 newLink.style.display = 'none';
+loadingGif.src = 'loading.gif';
+loadingGif.alt = 'Loading...';
+loadingGif.style.width = '18px';
+loadingGif.style.height = '18px';
+
 let isCopyMode = false;
 
 sendButton.addEventListener('click', async () => {
     if (isCopyMode === false) {
         try {
+            sendButton.disabled = true;
+            sendButton.innerHTML = '';
+            sendButton.appendChild(loadingGif);
             const originalUrl = urlInput.value;
             const response = await fetch('/api/link', {
                 method: 'POST',
@@ -23,6 +33,7 @@ sendButton.addEventListener('click', async () => {
                 },
                 body: JSON.stringify({ link: originalUrl }),
             });
+            sendButton.disabled = true;
 
             if (response.ok) {
                 isCopyMode = true;
@@ -30,7 +41,7 @@ sendButton.addEventListener('click', async () => {
                 urlInput.value = data.shortenedLink;
                 urlInput.readOnly = true;
                 title2.innerHTML = 'Your shortened URL';
-                sendButton.textContent = 'Copy';
+                sendButton.innerHTML = 'Copy';
                 sendButton.id = 'copyButton';
                 document.body.appendChild(newLink);
                 inputContainer.appendChild(sendButton);
@@ -43,6 +54,10 @@ sendButton.addEventListener('click', async () => {
             }
         } catch (error) {
             console.error('Error during fetch:', error);
+        } finally {
+            sendButton.disabled = false;
+            sendButton.removeChild(loadingGif);
+            sendButton.innerHTML = 'Get short link';
         }
     } else {
         urlInput.select();

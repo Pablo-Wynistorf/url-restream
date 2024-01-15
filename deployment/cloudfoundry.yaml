@@ -2,12 +2,12 @@
 # cf push -f .\cloudfoundry.yaml
 ---
 applications:
-- name: link-shortener
+- name: url-restream
   docker:
-    image: remote-docker.artifactory.swisscom.com/pablo06/link-shortener:v1.0.0
+    image: remote-docker.artifactory.swisscom.com/pablo06/url-restream:v1.0.0
   instances: 1
   services:
-    - url-shortener-db
+    - url-restream-db
   readiness-health-check-http-endpoint: /
   disk_quota: 5G
   memory: 2G

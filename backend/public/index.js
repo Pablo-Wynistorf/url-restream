@@ -7,6 +7,10 @@ const successBox = document.createElement('div');
 const newLink = document.createElement('button');
 const loadingGif = document.createElement('img');
 const customUrlId = document.getElementById('customUrlId')
+const customUrlCheckbox = document.getElementById('customUrlCheckbox');
+const customUrl = document.getElementById('customUrl');
+const customUrlBox = document.getElementById('customUrlBox');
+const customUrlCheckboxContainer = document.getElementById('customUrlCheckboxContainer')
 
 errorBox.className = 'error-box';
 successBox.className = 'success-box';
@@ -19,6 +23,8 @@ loadingGif.style.width = '18px';
 loadingGif.style.height = '18px';
 
 let isCopyMode = false;
+let otuValue = false;
+
 
 sendButton.addEventListener('click', async () => {
     if (isCopyMode === false) {
@@ -27,12 +33,14 @@ sendButton.addEventListener('click', async () => {
             sendButton.innerHTML = '';
             sendButton.appendChild(loadingGif);
             const originalUrl = urlInput.value;
+            otuValue = customUrlCheckbox.checked;
+
             const response = await fetch('/api/link', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ link: originalUrl, customUrlId: customUrlId.value }),
+                body: JSON.stringify({ link: originalUrl, customUrlId: customUrlId.value, otu: otuValue }),
             });
             sendButton.disabled = true;
 
@@ -46,11 +54,12 @@ sendButton.addEventListener('click', async () => {
                 sendButton.id = 'copyButton';
                 const customUrl = document.getElementById('customUrl');
                 const customUrlBox = document.getElementById('customUrlBox');
+                customUrlCheckboxContainer.remove();
                 if (customUrl) {
                     customUrl.remove();
                     customUrlBox.remove();
                 }
-        
+
                 document.body.appendChild(newLink);
                 inputContainer.appendChild(sendButton);
                 newLink.style.display = 'block';
@@ -63,8 +72,8 @@ sendButton.addEventListener('click', async () => {
             } else if (response.status === 402) {
                 sendButton.disabled = true;
                 displayError('Error: Custom url already in use');
-                customUrlId.value = ""
-                customUrlBox.querySelector("input[readonly]").value = document.location.host + "/"
+                customUrlId.value = "";
+                customUrlBox.querySelector("input[readonly]").value = document.location.host + "/";
             } else {
                 displayError('Internal Server Error');
             }
@@ -124,4 +133,22 @@ document.addEventListener("DOMContentLoaded", function () {
     customUrlId.addEventListener('input', function () {
         customUrlBox.querySelector("input[readonly]").value = document.location.host + "/" + customUrlId.value;
     });
+});
+
+
+customUrlCheckbox.addEventListener('change', function () {
+    if (customUrlCheckbox.checked) {
+        customUrl.style.display = 'none';
+        customUrlBox.style.display = 'none'
+    } else {
+        customUrl.style.display = 'block';
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (customUrlCheckbox.checked) {
+        customUrl.style.display = 'none';
+    } else {
+        customUrl.style.display = 'block';
+    }
 });

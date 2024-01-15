@@ -1,4 +1,4 @@
-name: Build and Push Docker Image for Link Shortener
+name: Build and Push Docker Image for URL Restream
 
 on:
   workflow_dispatch:
@@ -25,4 +25,4 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: pablo06/link-shortener:latest
+          tags: pablo06/url-restream:latest

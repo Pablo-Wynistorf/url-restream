@@ -172,3 +172,13 @@ p {
   padding-top: 10px;
   cursor: pointer;
 }
+
+#customUrlCheckboxContainer {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+#customUrlCheckbox {
+  margin-right: 8px;
+}

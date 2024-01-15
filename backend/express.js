@@ -43,6 +43,7 @@ db.on('connected', () => {
 const { Schema } = mongoose;
 const urlSchema = new Schema({
   urlId: String,
+  otuUrlId: String,
   link: String,
   timestamp: String,
 });
@@ -71,6 +72,30 @@ const validateCustomUrlId = (url) => {
   return CustomUrlId.test(url);
 };
 
+
+async function generateOtuString() {
+  let randomString;
+  let existingString;
+
+  do {
+    randomString = crypto.randomBytes(30).toString('hex'); // Remove the "const" to assign to the outer variable
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database query in generateUniqueRandomString timed out')), 5000)
+    );
+
+    try {
+      existingString = await Promise.race([
+        urlDB.findOne({ otuUrlId: randomString }),
+        timeoutPromise,
+      ]);
+    } catch (error) {
+      console.error(error.message);
+    }
+  } while (existingString);
+  return randomString;
+}
+
+
 async function generateUniqueRandomString() {
   let randomString;
   let existingString;
@@ -85,7 +110,6 @@ async function generateUniqueRandomString() {
       timeoutPromise,
     ]);
   } while (existingString);
-
   return randomString;
 }
 
@@ -95,8 +119,7 @@ async function getTimestamp() {
 
 
 app.post('/api/link', async (req, res) => {
-  const { link } = req.body;
-  const { customUrlId } = req.body;
+  const { link, customUrlId, otu } = req.body;
   const { origin: host } = req.headers;
 
   const validatedLink = link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`;
@@ -106,11 +129,38 @@ app.post('/api/link', async (req, res) => {
   }
 
   try {
+    if (otu === true) {
+      const timestamp = await getTimestamp();
+
+      const timeoutPromiseRandomString = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database query in generateUniqueRandomString timed out')), 5000)
+      );
+
+      const urlIdToInsert = await Promise.race([
+        generateOtuString(),
+        timeoutPromiseRandomString,
+      ]);
+
+      const timeoutPromiseInsertMany = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database insertMany timed out')), 5000)
+      );
+
+      await Promise.race([
+        urlDB.insertMany({ urlId: '', otuUrlId: urlIdToInsert, link: validatedLink, timestamp: timestamp }),
+        timeoutPromiseInsertMany,
+      ]);
+
+      const shortenedLink = `${host}/otu/${urlIdToInsert}`;
+      return res.status(200).json({ success: true, shortenedLink });
+    }
+
     let urlIdToInsert;
+
     if (customUrlId) {
       if (!validateCustomUrlId(customUrlId)) {
         return res.status(401).json({ success: false, error: 'Invalid custom urlId' });
       }
+
       const timeoutPromiseCustomUrl = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Database query for customUrlId timed out')), 5000)
       );
@@ -145,19 +195,16 @@ app.post('/api/link', async (req, res) => {
     );
 
     await Promise.race([
-      urlDB.insertMany({ urlId: urlIdToInsert, link: validatedLink, timestamp: timestamp }),
+      urlDB.insertMany({ urlId: urlIdToInsert, otuUrlId: '', link: validatedLink, timestamp: timestamp }),
       timeoutPromiseInsertMany,
     ]);
 
     const shortenedLink = `${host}/${urlIdToInsert}`;
-    res.status(200).json({ success: true, shortenedLink });
-    return;
+    return res.status(200).json({ success: true, shortenedLink });
   } catch (error) {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
 
 
 
@@ -196,6 +243,44 @@ app.all('/:urlId', async (req, res) => {
     return res.redirect('/');
   }
 });
+
+
+app.all('/otu/:otuUrlId', async (req, res) => {
+  const { otuUrlId } = req.params;
+
+  try {
+    const urlDocPromise = new Promise(async (resolve, reject) => {
+      try {
+        const urlDoc = await urlDB.findOne({ otuUrlId: otuUrlId });
+        resolve(urlDoc);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => reject('Database query timed out'), 5000);
+    });
+
+    try {
+      const urlDoc = await Promise.race([urlDocPromise, timeoutPromise]);
+
+      if (urlDoc && urlDoc.link) {
+        await urlDB.deleteOne({ otuUrlId: otuUrlId });
+
+        const url = new URL(urlDoc.link);
+        res.redirect(url.href);
+      } else {
+        return res.redirect('/');
+      }
+    } catch (error) {
+      return res.redirect('/');
+    }
+  } catch (error) {
+    return res.redirect('/');
+  }
+});
+
 
 
 

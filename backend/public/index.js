@@ -143,8 +143,11 @@ customUrlCheckbox.addEventListener('change', function () {
 });
 
 
-customUrlCheckboxContainer.addEventListener('click', function () {
-    customUrlCheckbox.checked = !customUrlCheckbox.checked;
+customUrlCheckboxContainer.addEventListener('click', function (event) {
+    if (event.target !== customUrlCheckbox) {
+        customUrlCheckbox.checked = !customUrlCheckbox.checked;
+    }
+
     if (customUrlCheckbox.checked) {
         customUrl.style.display = 'none';
         customUrlBox.style.display = 'none';

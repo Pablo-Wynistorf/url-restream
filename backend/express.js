@@ -70,7 +70,14 @@ async function generateUniqueRandomString() {
   let existingString;
   do {
     randomString = crypto.randomBytes(3).toString('hex').slice(0, 6);
-    existingString = await urlDB.findOne({ urlId: randomString });
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database query in generateUniqueRandomString timed out')), 5000)
+    );
+
+    existingString = await Promise.race([
+      urlDB.findOne({ urlId: randomString }),
+      timeoutPromise,
+    ]);
   } while (existingString);
 
   return randomString;
@@ -92,29 +99,57 @@ app.post('/api/link', async (req, res) => {
     return res.status(400).json({ success: false });
   }
 
+  try {
+    let urlIdToInsert;
+
     if (customUrlId) {
-      try {
-        const existingCustomLink = await urlDB.findOne({ urlId: customUrlId });
+      const timeoutPromiseCustomUrl = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database query for customUrlId timed out')), 5000)
+      );
 
-        if (existingCustomLink) {
-          return res.status(401).json({ error: 'Custom URL already in use' });
-        }
-      } catch (error) {
-        return res.status(500).json({ error: 'Internal Server Error' });
+      const existingCustomLinkPromise = urlDB.findOne({ urlId: customUrlId });
+
+      const existingCustomLink = await Promise.race([
+        existingCustomLinkPromise,
+        timeoutPromiseCustomUrl,
+      ]);
+
+      if (existingCustomLink) {
+        return res.status(401).json({ error: 'Custom URL already in use' });
       }
-    }
-    try {
-      const urlIdToInsert = customUrlId || await generateUniqueRandomString();
-      const timestamp = await getTimestamp();
-      await urlDB.insertMany({ urlId: urlIdToInsert, link: validatedLink, timestamp: timestamp });
 
-      const shortenedLink = `${host}/${urlIdToInsert}`;
-      res.status(200).json({ success: true, shortenedLink });
-      return;
-    } catch (error) {
-      return res.status(500).json({ error: 'Internal Server Error' });
+      urlIdToInsert = customUrlId;
+    } else {
+      const timeoutPromiseRandomString = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database query in generateUniqueRandomString timed out')), 5000)
+      );
+
+      urlIdToInsert = await Promise.race([
+        generateUniqueRandomString(),
+        timeoutPromiseRandomString,
+      ]);
     }
+
+    const timestamp = await getTimestamp();
+
+    const timeoutPromiseInsertMany = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database insertMany timed out')), 5000)
+    );
+
+    await Promise.race([
+      urlDB.insertMany({ urlId: urlIdToInsert, link: validatedLink, timestamp: timestamp }),
+      timeoutPromiseInsertMany,
+    ]);
+
+    const shortenedLink = `${host}/${urlIdToInsert}`;
+    res.status(200).json({ success: true, shortenedLink });
+    return;
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
+
+
 
 
 

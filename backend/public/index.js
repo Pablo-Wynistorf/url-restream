@@ -49,9 +49,8 @@ sendButton.addEventListener('click', async () => {
                 const data = await response.json();
                 urlInput.value = data.shortenedLink;
                 urlInput.readOnly = true;
-                title2.innerHTML = 'Your shortened URL';
+                title2.innerHTML = 'Your restreamed URL';
                 sendButton.innerHTML = 'Copy';
-                sendButton.id = 'copyButton';
                 const customUrl = document.getElementById('customUrl');
                 const customUrlBox = document.getElementById('customUrlBox');
                 customUrlCheckboxContainer.remove();
@@ -81,7 +80,6 @@ sendButton.addEventListener('click', async () => {
             console.error('Error during fetch:', error);
         } finally {
             sendButton.disabled = false;
-            sendButton.innerHTML = 'Get short link';
         }
     } else {
         urlInput.select();
@@ -139,6 +137,17 @@ customUrlCheckbox.addEventListener('change', function () {
     if (customUrlCheckbox.checked) {
         customUrl.style.display = 'none';
         customUrlBox.style.display = 'none'
+    } else {
+        customUrl.style.display = 'block';
+    }
+});
+
+
+customUrlCheckboxContainer.addEventListener('click', function () {
+    customUrlCheckbox.checked = !customUrlCheckbox.checked;
+    if (customUrlCheckbox.checked) {
+        customUrl.style.display = 'none';
+        customUrlBox.style.display = 'none';
     } else {
         customUrl.style.display = 'block';
     }

@@ -2,15 +2,15 @@
 # cf push -f .\cloudfoundry.yaml
 ---
 applications:
-- name: url-restream
+- name: url-restream-app
   docker:
     image: remote-docker.artifactory.swisscom.com/pablo06/url-restream:v1.0.0
   instances: 1
   services:
-    - url-restream-db
+    - url-restream-mongo-db
   readiness-health-check-http-endpoint: /
   disk_quota: 5G
   memory: 2G
   routes:
-  - route: onedns.ch
   - route: jnawkjdnajiwndkjanwkdjnakwjdnkjawndkjnawjkdn.scapp.swisscom.com
+  - route: onedns.ch

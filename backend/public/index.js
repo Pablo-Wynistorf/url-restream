@@ -65,15 +65,19 @@ sendButton.addEventListener('click', async () => {
             } else if (response.status === 400) {
                 sendButton.disabled = true;
                 displayError('Error: Enter a valid URL');
+                sendButton.innerHTML = 'Generate URL';
             } else if (response.status === 401) {
                 sendButton.disabled = true;
                 displayError('Error: Invalid custom url');
+                sendButton.innerHTML = 'Generate URL';
             } else if (response.status === 402) {
                 sendButton.disabled = true;
                 displayError('Error: Custom url already in use');
                 customUrlId.value = "";
                 customUrlBox.querySelector("input[readonly]").value = document.location.host + "/";
+                sendButton.innerHTML = 'Generate URL';
             } else {
+                sendButton.innerHTML = 'Generate URL';
                 displayError('Internal Server Error');
             }
         } catch (error) {

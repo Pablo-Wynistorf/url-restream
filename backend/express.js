@@ -78,7 +78,7 @@ async function generateOtuString() {
   let existingString;
 
   do {
-    randomString = crypto.randomBytes(30).toString('hex'); // Remove the "const" to assign to the outer variable
+    randomString = crypto.randomBytes(30).toString('hex');
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Database query in generateUniqueRandomString timed out')), 5000)
     );

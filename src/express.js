@@ -16,7 +16,7 @@ if (process.env.VCAP_SERVICES) {
   }
 }
 
-const API_PORT = process.env.API_PORT || 3000;
+const API_PORT = process.env.API_PORT || 80;
 const DATABASE_URI = process.env.DATABASE_URI;
 
 function connectToDatabase() {

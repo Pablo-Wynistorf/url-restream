@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="favicon.svg">
+  <title>URL Restream</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <h1>URL Restream</h1>
+    <h3 id="title-2">Enter your URL:</h3>
+    <input type="url" class="hook_url" placeholder="Example: https://example.com/url" id="url" tabindex="50" data-form-type="website">
+    <div id="customUrlCheckboxContainer">
+      <input type="checkbox" id="customUrlCheckbox">Enable onetime URL</input>
+    </div>
+    <div class="custom-url" id="customUrl">⚙️ Set custom URL</div>
+    <div class="custom-url-box" id="customUrlBox">
+      <input type="text" value="" readonly>
+      <input id="customUrlId" type="text" value="" placeholder="custom_link" pattern="[a-zA-Z0-9]{1,12}" inputmode="text" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')" maxlength="20">
+    </div>
+    <button id="sendButton">Generate URL</button>
+    <div id="inputContainer"></div>
+  </div>
+
+  <script src="index.js"></script>
+</body>
+
+</html>

@@ -26,7 +26,7 @@ RANDOM_STRING=$(openssl rand -base64 6 | tr -dc 'a-z0-9' | head -c 6)
 S3_BUCKET_NAME="url-restream-$ACCOUNT_ID-$RANDOM_STRING"
 
 # Create the S3 bucket
-aws s3 mb s3://$S3_BUCKET_NAME
+aws s3 mb s3://$S3_BUCKET_NAME --region $AWS_DEFAULT_REGION
 
 # Deploy the SAM application
 sam deploy --template-file template.yml --stack-name urlRestreamStack --capabilities CAPABILITY_IAM --s3-bucket "$S3_BUCKET_NAME" --region $AWS_DEFAULT_REGION
@@ -47,5 +47,5 @@ S3_BUCKET_NAME=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, \`ur
 aws cloudformation delete-stack --stack-name urlRestreamStack --region $AWS_DEFAULT_REGION
 
 # Delete S3 Bucket
-aws s3 rb s3://$S3_BUCKET_NAME --force
+aws s3 rb s3://$S3_BUCKET_NAME --force --region $AWS_DEFAULT_REGION
 ```

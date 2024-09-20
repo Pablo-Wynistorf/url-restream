@@ -21,13 +21,13 @@ sam build
 # Set variables
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 S3_BUCKET_NAME="url-restream-$ACCOUNT_ID"
-REGION="us-east-1"
+AWS_DEFAULT_REGION="us-east-1"
 
 # Create the S3 bucket
-aws s3api create-bucket --bucket "$S3_BUCKET_NAME" --region "$REGION"
+aws s3api create-bucket --bucket "$S3_BUCKET_NAME"
 
 # Deploy the SAM application
-sam deploy --template-file template.yml --stack-name urlRestreamStack --capabilities CAPABILITY_IAM --region "$REGION" --s3-bucket "$S3_BUCKET_NAME"
+sam deploy --template-file template.yml --stack-name urlRestreamStack --capabilities CAPABILITY_IAM --s3-bucket "$S3_BUCKET_NAME"
 ```
 
 ## Cleanup
@@ -38,12 +38,12 @@ Just run these two commands:
 # Set variables
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 S3_BUCKET_NAME="url-restream-$ACCOUNT_ID"
-REGION="us-east-1"
+AWS_DEFAULT_REGION="us-east-1"
 
 # Delete SAM Stack
-aws cloudformation delete-stack --stack-name urlRestreamStack --region "$REGION"
+aws cloudformation delete-stack --stack-name urlRestreamStack
 
 # Delete S3 Bucket
-aws s3 rm s3://${S3_BUCKET_NAME} --recursive --region $REGION
-aws s3api delete-bucket --bucket $S3_BUCKET_NAME --region $REGION
+aws s3 rm s3://${S3_BUCKET_NAME} --recursive
+aws s3api delete-bucket --bucket $S3_BUCKET_NAME
 ```

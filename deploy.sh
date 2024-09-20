@@ -45,7 +45,7 @@ sam build
 
 echo "Deploying SAM application..."
 sam deploy --template-file template.yml \
-  --stack-name url-restream \
+  --stack-name urlRestreamStack \
   --capabilities CAPABILITY_IAM \
   --s3-bucket "$S3_BUCKET_NAME" \
   --region "$AWS_DEFAULT_REGION"

@@ -5,12 +5,12 @@
 Clone this repo:
 ```bash
 git clone https://github.com/Pablo-Wynistorf/url-restream.git
+cd url-restream
 ```
 
 Install node modules:
 ```bash
-cd src
-npm install
+npm install --prefix ./src
 ```
 
 Deploy the application using SAM:

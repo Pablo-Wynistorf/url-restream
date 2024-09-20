@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  urlDB:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: urlDB
+      AttributeDefinitions:
+        - AttributeName: urlId 
+          AttributeType: S
+      KeySchema:
+        - AttributeName: urlId 
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  urlRestreamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: url-restream
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: ./src
+      Timeout: 10
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+            Resource: 
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/urlDB
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref urlDB
+          
+
+  ApiGateway:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: url-restream-api
+      StageName: ""
+      CorsConfiguration:
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+        AllowOrigins:
+          - "*"
+  
+  ApiGatewayRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: 'ANY /{proxy+}'
+      Target: !Sub 'integrations/${LambdaIntegration}'
+
+  LambdaIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${urlRestreamFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt urlRestreamFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/{proxy+}
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway URL"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/"
+  TableName:
+    Description: "DynamoDB table name"
+    Value: !Ref urlDB

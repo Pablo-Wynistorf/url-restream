@@ -8,10 +8,19 @@ git clone https://github.com/Pablo-Wynistorf/url-restream.git
 cd url-restream
 ```
 
+### Automatic Deployment:
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+
+### Manual Deployment:
 Install node modules:
 ```bash
 npm install --prefix ./src
 ```
+
 
 Deploy the application using SAM:
 Note: Keep in mind that npm, aws cli and samcli has to be installed on your system
@@ -23,7 +32,7 @@ AWS_DEFAULT_REGION="us-east-1"
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 RANDOM_STRING=$(openssl rand -base64 6 | tr -dc 'a-z0-9' | head -c 6)
-S3_BUCKET_NAME="url-restream-$ACCOUNT_ID-$RANDOM_STRING"
+S3_BUCKET_NAME="url-restream-$ACCOUNT_ID-${AWS_DEFAULT_REGION//-/}-$RANDOM_STRING"
 
 # Create the S3 bucket
 aws s3 mb s3://$S3_BUCKET_NAME --region $AWS_DEFAULT_REGION
@@ -41,7 +50,7 @@ Just run these two commands:
 AWS_DEFAULT_REGION="us-east-1"
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-S3_BUCKET_NAME=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, \`url-restream-${ACCOUNT_ID}-\`)].Name" --output text)
+S3_BUCKET_NAME=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, \`url-restream-${ACCOUNT_ID}-${AWS_DEFAULT_REGION//-/}-\`)].Name" --output text)
 
 # Delete SAM Stack
 aws cloudformation delete-stack --stack-name urlRestreamStack --region $AWS_DEFAULT_REGION

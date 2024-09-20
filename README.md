@@ -44,6 +44,6 @@ REGION="us-east-1"
 aws cloudformation delete-stack --stack-name urlRestreamStack --region "$REGION"
 
 # Delete S3 Bucket
-aws s3 rm s3://${S3_BUCKET_NAME} --recursive
+aws s3 rm s3://${S3_BUCKET_NAME} --recursive --region $REGION
 aws s3api delete-bucket --bucket $S3_BUCKET_NAME --region $REGION
 ```

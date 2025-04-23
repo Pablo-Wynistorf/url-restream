@@ -1,30 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="assets/favicon.svg">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>URL Restream</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="shortcut icon" href="assets/favicon.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'media', // or 'class' if you want to control it manually
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
 </head>
 
-<body>
-  <div id="container">
-    <h1>URL Restream</h1>
-    <h3 id="title-2">Enter your URL:</h3>
-    <input type="url" class="hook_url" placeholder="Example: https://example.com/url" id="url" tabindex="50" data-form-type="website">
-    <div id="customUrlCheckboxContainer">
-      <input type="checkbox" id="customUrlCheckbox">Enable onetime URL</input>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-6 space-y-6">
+    <h1 class="text-2xl font-bold text-center">🔁 URL Restream</h1>
+
+    <div class="space-y-2">
+      <h3 class="font-medium">Enter your URL:</h3>
+      <input
+        type="url"
+        id="url"
+        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        placeholder="https://example.com/url"
+        tabindex="50"
+        data-form-type="website"
+      />
     </div>
-    <div class="custom-url" id="customUrl">⚙️ Set custom URL</div>
-    <div class="custom-url-box" id="customUrlBox">
-      <input type="text" value="" readonly>
-      <input id="customUrlId" type="text" value="" placeholder="custom_link" pattern="[a-zA-Z0-9]{1,12}" inputmode="text" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')" maxlength="20">
+
+    <div class="flex items-center space-x-2">
+      <input type="checkbox" id="customUrlCheckbox" class="accent-indigo-600 h-4 w-4" />
+      <label for="customUrlCheckbox" class="text-sm">Enable onetime URL</label>
     </div>
-    <button id="sendButton">Generate URL</button>
-    <div id="inputContainer"></div>
+
+    <div>
+      <button
+        id="customUrl"
+        class="text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-medium flex items-center space-x-1"
+      >
+        <span>⚙️ Set custom URL</span>
+      </button>
+    </div>
+
+    <div id="customUrlBox" class="hidden flex flex-col gap-2 border border-gray-200 dark:border-gray-600 p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
+      <input
+        type="text"
+        readonly
+        value=""
+        class="bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-3 py-2 rounded border border-gray-300 dark:border-gray-500 cursor-not-allowed"
+      />
+      <input
+        id="customUrlId"
+        type="text"
+        value=""
+        placeholder="custom_link"
+        pattern="[a-zA-Z0-9]{1,12}"
+        inputmode="text"
+        maxlength="20"
+        oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')"
+        class="px-3 py-2 rounded border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+
+    <button
+      id="sendButton"
+      class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition"
+    >
+      Generate URL
+    </button>
+
+    <div id="inputContainer" class="pt-4"></div>
+    <div id="alertBox" class="hidden p-3 rounded-md text-sm font-medium text-white transition-all duration-300"></div>
+
   </div>
+
+<!-- Modal -->
+<div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm relative shadow-xl space-y-4 text-center">
+    <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-xl font-bold">×</button>
+    <h2 class="text-lg font-semibold">✅ Your shortened URL</h2>
+    <input
+      id="shortenedLinkDisplay"
+      readonly
+      class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-center rounded border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-100 cursor-default"
+    />
+    <div class="flex justify-center space-x-4">
+      <button id="copyModalLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Copy</button>
+      <button id="restartButton" class="bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500">Shorten another URL</button>
+    </div>
+  </div>
+</div>
+
 
   <script src="js/script.js"></script>
 </body>
